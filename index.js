@@ -1,43 +1,36 @@
 const express = require("express");
+const DB = require("./DB");
 const app = express();
-
+const dbcontext = DB.carsDatabase();
 app.use(express.json());
 
 app.listen(3000, () => {
     console.log("The server's ok!");
 })
 
-const cars = [];
 
-app.get("/cars", (req, res) => {
+app.get("/cars", async (req, res) => {
     console.log(req.method);
-    res.status(200).send({cars: cars});
+    res.status(200).send(await dbcontext.list());
 })
 
-app.get("/cars/:id", (req, res) => {
+app.get("/cars/:id", async (req, res) => {
     console.log(req.method);
-    const car = cars.find(car => car.id == req.params.id);
-    res.status(200).send(car);
+    res.status(200).send(await dbcontext.get(req.params.id));
 })
 
-app.post("/cars" , (req, res) => {
+app.post("/cars" , async (req, res) => {
     console.log(req.method);
-    cars.push(req.body);
-    res.status(200).send(req.body);
+    res.status(200).send(await dbcontext.insert(req.body));
 })
 
-app.put("/cars/:id", (req, res) => {
+app.put("/cars/:id", async (req, res) => {
     console.log(req.method);
-    const carIndex = cars.findIndex(car => car.id == req.params.id);
-    cars[carIndex] = req.body;
-    res.status(200).send(req.body);
+    res.status(200).send(await dbcontext.update(req.body, req.params.id));
 })
 
-app.delete("/cars/:id", (req, res) => {
+app.delete("/cars/:id", async (req, res) => {
     console.log(req.method);
-    const carIndex = cars.findIndex(car => car.id == req.params.id);
-    if (carIndex !== -1) {
-        cars.splice(carIndex, 1);
-        res.status(200).send(cars[carIndex]);
-    }
+    await dbcontext.del(req.params.id)
+    res.status(200).send("Sucess!!");
 })
